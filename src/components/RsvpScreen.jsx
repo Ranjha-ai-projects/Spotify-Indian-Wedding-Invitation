@@ -7,7 +7,7 @@ import { useState } from 'react'
  * summary. Form fields are dressed up as playlist tracks. Submitting opens
  * WhatsApp with pre-filled RSVP details and shows a confirmation state.
  */
-export default function RsvpScreen({ mapsUrl, onBack, whatsappNumber = "919876543210" }) {
+export default function RsvpScreen({ mapsUrl, onBack, whatsappNumber = "9878627770" }) {
   const [form, setForm] = useState({ name: '', attending: 'yes', message: '' })
   const [submitted, setSubmitted] = useState(false)
 
@@ -123,11 +123,10 @@ export default function RsvpScreen({ mapsUrl, onBack, whatsappNumber = "91987654
                   key={opt.v}
                   type="button"
                   onClick={() => setForm((f) => ({ ...f, attending: opt.v }))}
-                  className={`rounded-lg py-2.5 text-sm font-semibold transition ${
-                    form.attending === opt.v
+                  className={`rounded-lg py-2.5 text-sm font-semibold transition ${form.attending === opt.v
                       ? 'bg-spotify text-black'
                       : 'bg-white/10 text-white/70'
-                  }`}
+                    }`}
                 >
                   {opt.label}
                 </button>
