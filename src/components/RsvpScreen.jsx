@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion'
-import { ArrowLeft, Check, Heart, MapPin, Music2, Plus } from 'lucide-react'
+import { ArrowLeft, Check, Heart, MapPin, Music2, Send } from 'lucide-react'
 import { useState } from 'react'
 
 /**
  * RsvpScreen — the outro, styled like a "Playlist complete / Liked Songs"
- * summary. Form fields are dressed up as playlist tracks. Submitting just
- * captures locally (wire your own backend / Google Form into onSubmit).
+ * summary. Form fields are dressed up as playlist tracks. Submitting opens
+ * WhatsApp with pre-filled RSVP details and shows a confirmation state.
  */
-export default function RsvpScreen({ mapsUrl, onBack }) {
+export default function RsvpScreen({ mapsUrl, onBack, whatsappNumber = "919876543210" }) {
   const [form, setForm] = useState({ name: '', attending: 'yes', message: '' })
   const [submitted, setSubmitted] = useState(false)
 
@@ -15,8 +15,25 @@ export default function RsvpScreen({ mapsUrl, onBack }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Replace this with a real POST / Google Form submission.
-    console.log('RSVP submitted:', form)
+
+    if (!form.name.trim()) {
+      alert("Please enter your name.")
+      return
+    }
+
+    // Format the WhatsApp message
+    const attendanceText = form.attending === 'yes' ? "Yes, I'm in! 🎶" : "Can't make it 💔"
+    const messagePart = form.message.trim() ? `\n*Message:* ${form.message.trim()}` : ''
+    const whatsappMessage = `*New RSVP Received! 🎉*\n\n*Guest Name:* ${form.name.trim()}\n*Attending:* ${attendanceText}${messagePart}`
+    const encodedMessage = encodeURIComponent(whatsappMessage)
+
+    // Set phone number (stripping any non-digit characters)
+    const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '')
+    const whatsappURL = `https://wa.me/${cleanNumber}?text=${encodedMessage}`
+
+    // Open WhatsApp in a new tab
+    window.open(whatsappURL, '_blank')
+
     setSubmitted(true)
   }
 
@@ -82,6 +99,7 @@ export default function RsvpScreen({ mapsUrl, onBack }) {
                 Guest name
               </span>
               <input
+                id="guestName"
                 required
                 value={form.name}
                 onChange={set('name')}
@@ -123,6 +141,7 @@ export default function RsvpScreen({ mapsUrl, onBack }) {
               Message for the couple
             </span>
             <textarea
+              id="message"
               rows={3}
               value={form.message}
               onChange={set('message')}
@@ -131,12 +150,12 @@ export default function RsvpScreen({ mapsUrl, onBack }) {
             />
           </label>
 
-          {/* Confirm — Add to Library */}
+          {/* Send button */}
           <button
             type="submit"
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-spotify py-3.5 text-base font-bold text-black transition active:scale-[0.98]"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-spotify py-3.5 text-base font-bold text-black transition active:scale-[0.98] hover:brightness-105"
           >
-            <Plus size={20} strokeWidth={3} /> CONFIRM RSVP
+            <Send size={18} /> Send
           </button>
         </form>
       )}
