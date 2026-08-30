@@ -1,81 +1,98 @@
-// =============================================================
-//  WEDDING_PLAYLIST — edit everything here.
-//  Each "track" is one wedding event.
-//    id       : unique key
-//    title    : event name  (shown as the SONG TITLE)
-//    artist   : venue name   (shown under the title)
-//    coverUrl : event image  (the album art + blurred backdrop)
-//    audioUrl : mp3 that plays for this event
-//    lyrics   : the description / vibe text (shown in the Lyrics box)
-//    date     : date & time string
-//    accent   : optional accent color for this track ('#1DB954' green / '#D4AF37' gold)
-//    mapsUrl  : optional Google Maps link for "Get Directions"
-// =============================================================
+import image1 from '../assets/images/image1.png'
+import image2 from '../assets/images/image2.png'
+import image3 from '../assets/images/image3.png'
+
+import song1 from '../assets/songs/song1.mp3'
+import song2 from '../assets/songs/song2.mp3'
+import song3 from '../assets/songs/song3.mp3'
+
+// =========================================================================
+//  WEDDING_CONFIG — SINGLE SOURCE OF TRUTH FOR ALL WEDDING DATA
+//  Update couple names, dates, story, RSVP number, and calendar details here.
+// =========================================================================
+
+export const WEDDING_CONFIG = {
+  // Couple Information
+  groom: 'Emily',
+  bride: 'Joshua',
+  initials: 'E ♥ J',
+
+  // Branding & Subtitles
+  year: '2026',
+  tagline: '2026 WRAPPED',
+  playlistName: 'The Wedding Playlist',
+  subheading: 'Wedding Wrapped',
+
+  // Landing Screen Story / Blessing
+  story:
+    'Emily & Joshua are getting married and you are invited to the celebration! Three ceremonies, one unforgettable celebration. May their days always play in perfect harmony. 🤍',
+
+  // Main Wedding Date (Used for the Live Countdown & Calendar)
+  mainWeddingDate: 'Sun, 25 Nov 2026 · 6:00 PM',
+  isoWeddingDate: '2026-11-25T18:00:00+05:30', // ISO format for countdown calculations
+
+  // Google Calendar Event Details ("Mark Your Calendar" button)
+  calendar: {
+    eventTitle: 'Emily weds Joshua — Wedding Celebration 💍',
+    description:
+      'Join us to celebrate the wedding of Emily & Joshua! Seven sacred vows under the sunset breeze. Dress Code: Coastal Elegance / Traditional Best.',
+    location: 'Ocean Coastline Pavilion / City Palace, Udaipur',
+    durationHours: 4,
+  },
+
+  // RSVP & WhatsApp Configuration
+  rsvp: {
+    whatsappNumber: '9878627770', // Country code + phone number
+    title: "You're a top fan!",
+    subtitle: 'Will you be celebrating live with us?',
+    confirmationTitle: 'Added to the Guest Library 🎉',
+    confirmationYes: "We can't wait to see you on the dance floor!",
+    confirmationNo: "We'll miss you dearly — sending love and warm blessings.",
+  },
+}
+
+// =========================================================================
+//  WEDDING_PLAYLIST — EVENTS / CEREMONIES TIMELINE
+//  Each track corresponds to one wedding ceremony/event.
+// =========================================================================
 
 export const WEDDING_PLAYLIST = [
   {
-    id: 'sangeet',
-    title: 'The Sangeet Night',
-    artist: 'Jai Mahal Palace, Jaipur',
-    coverUrl:
-      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=900&q=80&auto=format&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    id: 'our-favorite-kind-of-ordinary',
+    title: 'Our Favorite Kind of Ordinary',
+    artist: 'Café Parisien Ballroom & Courtyard',
+    coverUrl: image1,
+    audioUrl: song1,
     lyrics:
-      'Dust off your dancing shoes. A night of music, dhol beats and unrehearsed choreography. Dress Code: Festive Indo-Western.',
+      'From little coffee dates to a lifetime of memories, every moment is better together.',
     date: 'Fri, 6 Feb 2026 · 7:00 PM',
-    accent: '#D4AF37',
+    accent: '#1DB954',
     mapsUrl: 'https://maps.google.com/?q=Jai+Mahal+Palace+Jaipur',
   },
   {
-    id: 'haldi',
-    title: 'The Haldi Ceremony',
-    artist: 'Ritz-Carlton, Udaipur',
-    coverUrl:
-      'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=900&q=80&auto=format&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+    id: 'holding-hands-rings',
+    title: 'A Promise to Hold Forever',
+    artist: 'White Rose Garden Sanctuary',
+    coverUrl: image2,
+    audioUrl: song2,
     lyrics:
-      'Join us for a sunny afternoon of turmeric and love. Expect laughter, marigolds and a lot of yellow. Dress Code: Yellow.',
-    date: 'Sat, 7 Feb 2026 · 11:00 AM',
+      'Hand in hand, heart to heart — a promise of love, laughter, and a lifetime together.',
+    date: 'Sat, 20 Oct 2026 · 6:30 PM',
     accent: '#D4AF37',
     mapsUrl: 'https://maps.google.com/?q=Ritz+Carlton+Udaipur',
   },
   {
-    id: 'mehndi',
-    title: 'The Mehndi Afternoon',
-    artist: 'Leela Palace Gardens, Udaipur',
-    coverUrl:
-      'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=900&q=80&auto=format&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
+    id: 'where-our-forever-begins',
+    title: 'Where Our Forever Begins',
+    artist: 'Ocean Coastline Pavilion',
+    coverUrl: image3,
+    audioUrl: song3,
     lyrics:
-      'Henna, chaat carts and cool sherbet under the shade. Come get your hands adorned. Dress Code: Green & Floral.',
-    date: 'Sat, 7 Feb 2026 · 4:00 PM',
+      'With the ocean as our witness and love in our hearts, we begin our beautiful journey together.',
+    date: 'Sun, 25 Nov 2026 · 6:00 PM',
     accent: '#1DB954',
-    mapsUrl: 'https://maps.google.com/?q=Leela+Palace+Udaipur',
-  },
-  {
-    id: 'wedding',
-    title: 'The Wedding Pheras',
-    artist: 'City Palace Courtyard, Udaipur',
-    coverUrl:
-      'https://images.unsplash.com/photo-1595407753234-0882f1e77954?w=900&q=80&auto=format&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3',
-    lyrics:
-      'The main track. Seven vows, one fire, forever after. Witness Ranveer & Alia tie the knot. Dress Code: Traditional Best.',
-    date: 'Sun, 8 Feb 2026 · 7:30 PM',
-    accent: '#D4AF37',
     mapsUrl: 'https://maps.google.com/?q=City+Palace+Udaipur',
   },
-  {
-    id: 'reception',
-    title: 'The Grand Reception',
-    artist: 'Taj Lake Palace, Udaipur',
-    coverUrl:
-      'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=900&q=80&auto=format&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3',
-    lyrics:
-      'The encore. Cocktails on the lake, a live band and the last dance of the weekend. Dress Code: Cocktail Glam.',
-    date: 'Mon, 9 Feb 2026 · 8:00 PM',
-    accent: '#1DB954',
-    mapsUrl: 'https://maps.google.com/?q=Taj+Lake+Palace+Udaipur',
-  },
 ]
+
+

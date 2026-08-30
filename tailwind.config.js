@@ -10,8 +10,9 @@ export default {
         gold: '#D4AF37',
       },
       fontFamily: {
-        // Montserrat is loaded in index.html; falls back gracefully.
-        sans: ['Montserrat', 'system-ui', 'Helvetica', 'Arial', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'Montserrat', 'system-ui', 'sans-serif'],
+        montserrat: ['Montserrat', 'system-ui', 'sans-serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
       },
       keyframes: {
         // Slow "breathing" pulse for the big Play button.
@@ -28,11 +29,18 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        eqBar: {
+          '0%, 100%': { height: '4px' },
+          '50%': { height: '16px' },
+        },
       },
       animation: {
         pulseGlow: 'pulseGlow 2.2s ease-in-out infinite',
         marquee: 'marquee 12s linear infinite',
         floatUp: 'floatUp 0.6s ease-out both',
+        eq1: 'eqBar 0.8s ease-in-out infinite',
+        eq2: 'eqBar 0.8s ease-in-out 0.2s infinite',
+        eq3: 'eqBar 0.8s ease-in-out 0.4s infinite',
       },
     },
   },

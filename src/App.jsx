@@ -1,6 +1,6 @@
 import { AnimatePresence } from 'framer-motion'
-import { useRef, useState } from 'react'
-import { WEDDING_PLAYLIST } from './data/playlist.js'
+import { useEffect, useRef, useState } from 'react'
+import { WEDDING_CONFIG, WEDDING_PLAYLIST } from './data/playlist.js'
 import { useAudioEngine } from './hooks/useAudioEngine.js'
 import BackgroundGradient from './components/BackgroundGradient.jsx'
 import LandingOverlay from './components/LandingOverlay.jsx'
@@ -13,6 +13,14 @@ import RsvpScreen from './components/RsvpScreen.jsx'
  */
 export default function App() {
   const [screen, setScreen] = useState('landing')
+
+  // Dynamically update document title based on configuration in playlist.js
+  useEffect(() => {
+    if (WEDDING_CONFIG?.groom && WEDDING_CONFIG?.bride) {
+      document.title = `${WEDDING_CONFIG.groom} weds ${WEDDING_CONFIG.bride} — ${WEDDING_CONFIG.tagline || '2026 Wrapped'}`
+    }
+  }, [])
+
   // Advancing past the final event drops the guest onto the RSVP form.
   const audio = useAudioEngine(WEDDING_PLAYLIST, {
     onFinished: () => setScreen('rsvp'),
@@ -39,12 +47,18 @@ export default function App() {
 
       <AnimatePresence mode="wait">
         {screen === 'landing' && (
-          <LandingOverlay key="landing" onPlay={handlePlay} />
+          <LandingOverlay
+            key="landing"
+            config={WEDDING_CONFIG}
+            coverArt={WEDDING_PLAYLIST[0]?.coverUrl}
+            onPlay={handlePlay}
+          />
         )}
 
         {screen === 'player' && (
           <MusicPlayer
             key="player"
+            config={WEDDING_CONFIG}
             track={track}
             index={audio.currentIndex}
             total={WEDDING_PLAYLIST.length}
@@ -57,7 +71,9 @@ export default function App() {
         {screen === 'rsvp' && (
           <RsvpScreen
             key="rsvp"
+            config={WEDDING_CONFIG}
             mapsUrl={track.mapsUrl}
+            weddingDate={WEDDING_CONFIG.isoWeddingDate}
             onBack={() => setScreen('player')}
           />
         )}
@@ -65,3 +81,4 @@ export default function App() {
     </div>
   )
 }
+

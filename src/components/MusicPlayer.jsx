@@ -9,6 +9,7 @@ import Controls from './Controls.jsx'
  * lyrics box and transport controls in a mobile-first, fixed-height column.
  */
 export default function MusicPlayer({
+  config,
   track,
   index,
   total,
@@ -16,6 +17,8 @@ export default function MusicPlayer({
   audio,
   onOpenRsvp,
 }) {
+  const subheading = config?.subheading || 'Wedding Wrapped'
+
   return (
     <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-6 pt-[max(1rem,env(safe-area-inset-top))]">
       {/* Top bar */}
@@ -27,7 +30,7 @@ export default function MusicPlayer({
           <p className="text-[10px] uppercase tracking-[0.25em] text-white/50">
             Playing from playlist
           </p>
-          <p className="text-xs font-semibold">Wedding Wrapped</p>
+          <p className="text-xs font-semibold">{subheading}</p>
         </div>
         <button
           aria-label="View RSVP screen"
@@ -42,13 +45,20 @@ export default function MusicPlayer({
       <div className="flex flex-1 flex-col justify-center">
         <AlbumArt track={track} isPlaying={audio.isPlaying} direction={direction} />
 
-        <SongInfo title={track.title} subtitle={track.date} />
+        <SongInfo
+          title={track.title}
+          subtitle={track.date}
+          isPlaying={audio.isPlaying}
+          trackNumber={index + 1}
+          accent={track.accent}
+        />
 
         <LyricsBox
           trackId={track.id}
           lyrics={track.lyrics}
           venue={track.artist}
           mapsUrl={track.mapsUrl}
+          accent={track.accent}
         />
       </div>
 

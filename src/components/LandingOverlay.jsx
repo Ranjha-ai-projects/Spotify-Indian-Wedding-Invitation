@@ -3,10 +3,18 @@ import { ChevronRight, Play } from 'lucide-react'
 
 /**
  * LandingOverlay — the "cover" of the invite, styled like a Spotify Wrapped /
- * playlist splash for Ranveer & Alia. The WHOLE screen is tappable (and there's
- * an explicit button) — either boots the audio context and opens the events.
+ * playlist splash. All text and visuals are powered by the central WEDDING_CONFIG.
  */
-export default function LandingOverlay({ onPlay }) {
+export default function LandingOverlay({ config, coverArt, onPlay }) {
+  const groom = config?.groom || 'Ranveer'
+  const bride = config?.bride || 'Alia'
+  const initials = config?.initials || `${groom[0]} ♥ ${bride[0]}`
+  const tagline = config?.tagline || `${config?.year || '2026'} WRAPPED`
+  const playlistName = config?.playlistName || 'The Wedding Playlist'
+  const story =
+    config?.story ||
+    'Every great love story deserves a soundtrack — and theirs is finally here. Three ceremonies, one unforgettable celebration. May their days always play in perfect harmony. 🤍'
+
   return (
     <motion.div
       onClick={onPlay}
@@ -25,20 +33,38 @@ export default function LandingOverlay({ onPlay }) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
       >
-        2026 WRAPPED
+        {tagline}
       </motion.p>
 
       <div className="flex flex-col items-center">
-        {/* Playlist "cover art" tile with the couple's monogram */}
+        {/* Playlist "cover art" tile with the couple's photo and initials */}
         <motion.div
-          className="mb-8 flex h-36 w-36 items-center justify-center rounded-2xl bg-gradient-to-br from-gold via-spotify to-emerald-700 shadow-2xl shadow-black/50 ring-1 ring-white/10 sm:h-40 sm:w-40"
-          initial={{ scale: 0.6, opacity: 0, rotate: -6 }}
+          className="relative mb-6 h-36 w-36 overflow-hidden rounded-2xl shadow-2xl shadow-black/70 ring-1 ring-white/20 sm:h-40 sm:w-40"
+          initial={{ scale: 0.6, opacity: 0, rotate: -4 }}
           animate={{ scale: 1, opacity: 1, rotate: 0 }}
           transition={{ delay: 0.15, type: 'spring', stiffness: 120 }}
         >
-          <span className="text-5xl font-black tracking-tight text-black/90 drop-shadow">
-            R<span className="mx-0.5 align-middle text-3xl">♥</span>A
-          </span>
+          {coverArt ? (
+            <img
+              src={coverArt}
+              alt={`${groom} & ${bride} Wedding Cover`}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gold via-spotify to-emerald-700">
+              <span className="text-4xl font-black text-black/90">
+                {initials}
+              </span>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-between p-2.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-spotify">
+              Playlist
+            </span>
+            <span className="text-xs font-bold text-white/95 drop-shadow">
+              {initials}
+            </span>
+          </div>
         </motion.div>
 
         <motion.p
@@ -47,7 +73,7 @@ export default function LandingOverlay({ onPlay }) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.35 }}
         >
-          The Wedding Playlist
+          {playlistName}
         </motion.p>
 
         <motion.h1
@@ -58,26 +84,24 @@ export default function LandingOverlay({ onPlay }) {
           transition={{ delay: 0.25, type: 'spring', stiffness: 90 }}
         >
           <span className="block bg-gradient-to-br from-white to-white/70 bg-clip-text text-transparent">
-            Ranveer
+            {groom}
           </span>
           <span className="my-1 block text-xl font-light italic text-gold sm:text-2xl">
             weds
           </span>
           <span className="block bg-gradient-to-br from-white to-white/70 bg-clip-text text-transparent">
-            Alia
+            {bride}
           </span>
         </motion.h1>
 
-        {/* Blessing */}
+        {/* Blessing / Story */}
         <motion.p
           className="mt-7 max-w-xs text-sm leading-relaxed text-white/75 sm:text-base"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          Every great love story deserves a soundtrack — and theirs is finally here.
-          Five events, one unforgettable weekend. May their days always play in
-          perfect harmony. 🤍
+          {story}
         </motion.p>
       </div>
 
@@ -106,3 +130,4 @@ export default function LandingOverlay({ onPlay }) {
     </motion.div>
   )
 }
+
