@@ -14,11 +14,15 @@ import RsvpScreen from './components/RsvpScreen.jsx'
 export default function App() {
   const [screen, setScreen] = useState('landing')
 
-  // Dynamically update document title based on configuration in playlist.js
+  // Dynamically update document title based on couple configuration
   useEffect(() => {
-    if (WEDDING_CONFIG?.groom && WEDDING_CONFIG?.bride) {
-      document.title = `${WEDDING_CONFIG.groom} weds ${WEDDING_CONFIG.bride} — ${WEDDING_CONFIG.tagline || '2026 Wrapped'}`
-    }
+    const isBrideFirst =
+      WEDDING_CONFIG?.displayOrder?.toLowerCase()?.startsWith('bride') ?? true
+    const bride = WEDDING_CONFIG?.bride || '[BRIDE’S NAME]'
+    const groom = WEDDING_CONFIG?.groom || '[GROOM’S NAME]'
+    const first = isBrideFirst ? bride : groom
+    const second = isBrideFirst ? groom : bride
+    document.title = `${first} weds ${second} — ${WEDDING_CONFIG?.tagline || 'The Wedding Playlist'}`
   }, [])
 
   // Advancing past the final event drops the guest onto the RSVP form.
@@ -34,7 +38,7 @@ export default function App() {
     lastIndex.current = audio.currentIndex
   }
 
-  const track = WEDDING_PLAYLIST[audio.currentIndex]
+  const track = WEDDING_PLAYLIST[audio.currentIndex] || WEDDING_PLAYLIST[0]
 
   const handlePlay = () => {
     setScreen('player') // transition first so the UI never blocks on audio
@@ -43,19 +47,19 @@ export default function App() {
 
   return (
     <div className="relative min-h-dvh w-full">
-      <BackgroundGradient coverUrl={track.coverUrl} accent={track.accent} />
+      <BackgroundGradient coverUrl={track?.coverUrl} accent={track?.accent} />
 
       <AnimatePresence mode="wait">
         {screen === 'landing' && (
           <LandingOverlay
             key="landing"
             config={WEDDING_CONFIG}
-            coverArt={WEDDING_PLAYLIST[0]?.coverUrl}
+            coverArt={WEDDING_CONFIG?.landingCoverUrl || WEDDING_PLAYLIST[0]?.coverUrl}
             onPlay={handlePlay}
           />
         )}
 
-        {screen === 'player' && (
+        {screen === 'player' && track && (
           <MusicPlayer
             key="player"
             config={WEDDING_CONFIG}
@@ -72,8 +76,9 @@ export default function App() {
           <RsvpScreen
             key="rsvp"
             config={WEDDING_CONFIG}
-            mapsUrl={track.mapsUrl}
-            weddingDate={WEDDING_CONFIG.isoWeddingDate}
+            events={WEDDING_PLAYLIST}
+            mapsUrl={track?.mapsUrl}
+            weddingDate={WEDDING_CONFIG?.isoWeddingDate}
             onBack={() => setScreen('player')}
           />
         )}
@@ -81,4 +86,3 @@ export default function App() {
     </div>
   )
 }
-

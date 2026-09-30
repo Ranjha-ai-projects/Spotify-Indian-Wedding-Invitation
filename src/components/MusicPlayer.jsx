@@ -17,25 +17,25 @@ export default function MusicPlayer({
   audio,
   onOpenRsvp,
 }) {
-  const subheading = config?.subheading || 'Wedding Wrapped'
+  const subheading = config?.subheading || 'The Celebration Lineup'
 
   return (
     <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-6 pt-[max(1rem,env(safe-area-inset-top))]">
       {/* Top bar */}
       <div className="flex items-center justify-between py-2 text-white/80">
-        <button aria-label="Collapse" className="p-1 active:scale-90">
+        <button aria-label="Collapse" className="p-1 active:scale-90 opacity-60 hover:opacity-100 transition-opacity">
           <ChevronDown size={22} />
         </button>
         <div className="text-center">
-          <p className="text-[10px] uppercase tracking-[0.25em] text-white/50">
-            Playing from playlist
+          <p className="text-[10px] uppercase tracking-[0.25em] text-white/50 font-bold">
+            Playing from lineup
           </p>
           <p className="text-xs font-semibold">{subheading}</p>
         </div>
         <button
           aria-label="View RSVP screen"
           onClick={onOpenRsvp}
-          className="p-1 active:scale-90"
+          className="p-1 active:scale-90 text-gold hover:text-white transition-colors"
         >
           <ListMusic size={22} />
         </button>
@@ -47,6 +47,7 @@ export default function MusicPlayer({
 
         <SongInfo
           title={track.title}
+          artist={track.artist}
           subtitle={track.date}
           isPlaying={audio.isPlaying}
           trackNumber={index + 1}
@@ -56,14 +57,21 @@ export default function MusicPlayer({
         <LyricsBox
           trackId={track.id}
           lyrics={track.lyrics}
-          venue={track.artist}
+          venue={track.venue || track.artist}
+          address={track.address}
           mapsUrl={track.mapsUrl}
+          dressCode={track.dressCode}
+          schedule={{
+            arrival: track.arrival,
+            baraat: track.baraat,
+            ceremony: track.ceremony,
+          }}
           accent={track.accent}
         />
       </div>
 
       {/* Controls pinned to the bottom */}
-      <div className="mt-5">
+      <div className="mt-4">
         <Controls
           currentTime={audio.currentTime}
           duration={audio.duration}
@@ -76,9 +84,9 @@ export default function MusicPlayer({
         />
 
         {/* Track position + jump to RSVP on the last event */}
-        <div className="mt-4 flex items-center justify-between text-xs text-white/50">
+        <div className="mt-3 flex items-center justify-between text-xs text-white/50">
           <span>
-            Track {index + 1} of {total}
+            Event {index + 1} of {total}
           </span>
           <button
             onClick={onOpenRsvp}

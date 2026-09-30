@@ -8,22 +8,30 @@ import {
   MapPin,
   Music2,
   Send,
-  Sparkles,
+  Users,
+  Utensils,
+  Phone,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 /**
- * Helper to build prefilled Google Calendar URL for the wedding
+ * Helper to build prefilled Google Calendar URL for the wedding in Asia/Kolkata timezone
  */
 function buildGoogleCalendarUrl({
-  title = 'Ranveer weds Alia — Wedding Ceremony',
-  details = 'The Wedding Celebration of Ranveer & Alia. Seven sacred vows under the golden sunset breeze! Dress Code: Coastal Elegance / Traditional Best.',
-  location = 'City Palace Courtyard, Udaipur',
-  startDate = '2026-11-25T18:00:00+05:30',
+  title,
+  details,
+  location,
+  startDate,
   durationHours = 4,
 }) {
+  if (!startDate || typeof startDate !== 'string' || startDate.includes('[')) {
+    return null
+  }
+
   try {
     const start = new Date(startDate)
+    if (isNaN(start.getTime())) return null
+
     const end = new Date(start.getTime() + durationHours * 60 * 60 * 1000)
 
     const fmtUtc = (d) =>
@@ -33,32 +41,53 @@ function buildGoogleCalendarUrl({
 
     const params = new URLSearchParams({
       action: 'TEMPLATE',
-      text: title,
+      text: title || 'Wedding Celebration 💍',
       dates: datesParam,
-      details: details,
-      location: location,
+      details: details || 'Wedding celebration with family and friends.',
+      location: location || 'India',
+      ctz: 'Asia/Kolkata',
     })
 
     return `https://calendar.google.com/calendar/render?${params.toString()}`
   } catch (_) {
-    return 'https://calendar.google.com'
+    return null
   }
 }
 
 /**
- * CountdownTimer — live Spotify-themed countdown to the wedding day.
+ * CountdownTimer — live Spotify-themed countdown to the wedding day in Asia/Kolkata.
+ * Safely handles pending or placeholder dates without NaN errors.
  */
 function CountdownTimer({
-  targetDate = '2026-11-25T18:00:00+05:30',
-  displayDate = '25 Nov 2026',
+  targetDate,
+  displayDate = '[DATE]',
 }) {
   const calculateTime = () => {
+    if (
+      !targetDate ||
+      typeof targetDate !== 'string' ||
+      targetDate.includes('[')
+    ) {
+      return { isPlaceholder: true, isComplete: false }
+    }
+
     const target = new Date(targetDate).getTime()
+    if (isNaN(target)) {
+      return { isPlaceholder: true, isComplete: false }
+    }
+
     const now = new Date().getTime()
     const diff = target - now
 
     if (diff <= 0) {
-      return { days: 0, hours: 0, minutes: 0, seconds: 0, isComplete: true }
+      return {
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        isComplete: true,
+        isPlaceholder: false,
+      }
     }
 
     return {
@@ -67,6 +96,7 @@ function CountdownTimer({
       minutes: Math.floor((diff / (1000 * 60)) % 60),
       seconds: Math.floor((diff / 1000) % 60),
       isComplete: false,
+      isPlaceholder: false,
     }
   }
 
@@ -78,13 +108,6 @@ function CountdownTimer({
     }, 1000)
     return () => clearInterval(timer)
   }, [targetDate])
-
-  const items = [
-    { label: 'Days', value: timeLeft.days },
-    { label: 'Hours', value: timeLeft.hours },
-    { label: 'Mins', value: timeLeft.minutes },
-    { label: 'Secs', value: timeLeft.seconds },
-  ]
 
   if (timeLeft.isComplete) {
     return (
@@ -99,12 +122,38 @@ function CountdownTimer({
     )
   }
 
+  if (timeLeft.isPlaceholder) {
+    return (
+      <div className="mb-5 overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-4 backdrop-blur-xl shadow-xl shadow-black/40">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-gold">
+            <Clock size={13} className="text-gold" />
+            <span>Countdown to the Wedding</span>
+          </div>
+          <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-white/70">
+            {displayDate}
+          </span>
+        </div>
+        <p className="mt-2 text-center text-xs text-white/60">
+          Live countdown will activate once the wedding schedule is confirmed.
+        </p>
+      </div>
+    )
+  }
+
+  const items = [
+    { label: 'Days', value: timeLeft.days },
+    { label: 'Hours', value: timeLeft.hours },
+    { label: 'Mins', value: timeLeft.minutes },
+    { label: 'Secs', value: timeLeft.seconds },
+  ]
+
   return (
     <div className="mb-5 overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-white/[0.1] to-white/[0.03] p-4 backdrop-blur-xl shadow-xl shadow-black/40">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-gold">
           <Clock size={13} className="text-gold animate-pulse" />
-          <span>Countdown to the Wedding</span>
+          <span>Countdown to the Wedding (IST)</span>
         </div>
         <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/60">
           {displayDate}
@@ -131,39 +180,86 @@ function CountdownTimer({
 }
 
 /**
- * RsvpScreen — "Playlist Complete" summary with wedding countdown, Google Calendar integration,
- * and WhatsApp RSVP form. All data is driven by config.
+ * RsvpScreen — Spotify-inspired RSVP card with countdown, Google Calendar export,
+ * attendance options for all Indian wedding ceremonies, meal preferences, and WhatsApp dispatch.
  */
 export default function RsvpScreen({
   config,
-  mapsUrl = 'https://maps.google.com/?q=City+Palace+Udaipur',
+  events = [],
+  mapsUrl,
   weddingDate,
   onBack,
 }) {
-  const [form, setForm] = useState({ name: '', attending: 'yes', message: '' })
+  const isBrideFirst =
+    config?.displayOrder?.toLowerCase()?.startsWith('bride') ?? true
+  const bride = config?.bride || '[BRIDE’S NAME]'
+  const groom = config?.groom || '[GROOM’S NAME]'
+  const firstPerson = isBrideFirst ? bride : groom
+  const secondPerson = isBrideFirst ? groom : bride
+  const coupleTitle = `${firstPerson} & ${secondPerson}`
+
+  const eventList = events.length > 0 ? events.map((e) => e.title) : [
+    'Mehendi',
+    'Haldi',
+    'Sangeet',
+    'Wedding Ceremony',
+  ]
+
+  const [form, setForm] = useState({
+    name: '',
+    attending: 'yes',
+    selectedEvents: [...eventList],
+    guestCount: '1',
+    mealPreference: config?.rsvp?.mealOptions?.[0] || 'Vegetarian',
+    message: '',
+  })
   const [submitted, setSubmitted] = useState(false)
+  const [phoneWarning, setPhoneWarning] = useState(null)
 
   const rsvpConfig = config?.rsvp || {}
   const calendarConfig = config?.calendar || {}
-  const whatsappNumber = rsvpConfig.whatsappNumber || '9878627770'
-  const targetIsoDate = config?.isoWeddingDate || weddingDate || '2026-11-25T18:00:00+05:30'
+  const whatsappNumber = rsvpConfig.whatsappNumber || '+91 [PHONE NUMBER]'
+  const targetIsoDate = config?.isoWeddingDate || weddingDate || ''
   const displayDate = config?.mainWeddingDate
     ? config.mainWeddingDate.split('·')[0].trim()
-    : '25 Nov 2026'
+    : '[DATE]'
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
+
+  const toggleEvent = (eventTitle) => {
+    setForm((f) => {
+      const exists = f.selectedEvents.includes(eventTitle)
+      const next = exists
+        ? f.selectedEvents.filter((t) => t !== eventTitle)
+        : [...f.selectedEvents, eventTitle]
+      return { ...f, selectedEvents: next }
+    })
+  }
+
+  const toggleAllEvents = () => {
+    setForm((f) => {
+      const allSelected = f.selectedEvents.length === eventList.length
+      return { ...f, selectedEvents: allSelected ? [] : [...eventList] }
+    })
+  }
 
   const googleCalendarUrl = buildGoogleCalendarUrl({
     title:
       calendarConfig.eventTitle ||
-      `${config?.groom || 'Ranveer'} weds ${config?.bride || 'Alia'} — Wedding Ceremony 💍`,
+      `${coupleTitle} — Wedding Celebration 💍`,
     details:
       calendarConfig.description ||
-      `The Wedding Celebration of ${config?.groom || 'Ranveer'} & ${config?.bride || 'Alia'}. Seven vows under the golden sunset breeze!`,
-    location: calendarConfig.location || 'City Palace Courtyard, Udaipur',
+      `Wedding Celebration of ${coupleTitle}. Together with our families, we invite you to join us!`,
+    location:
+      calendarConfig.location || config?.weddingCityState || 'India',
     startDate: targetIsoDate,
     durationHours: calendarConfig.durationHours || 4,
   })
+
+  const hasValidMapUrl =
+    mapsUrl &&
+    !mapsUrl.includes('[') &&
+    (mapsUrl.startsWith('http://') || mapsUrl.startsWith('https://'))
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -173,21 +269,37 @@ export default function RsvpScreen({
       return
     }
 
+    if (form.attending === 'yes' && form.selectedEvents.length === 0) {
+      alert('Please select at least one celebration you will be attending.')
+      return
+    }
+
     // Format the WhatsApp message
     const attendanceText =
-      form.attending === 'yes' ? "Yes, I'm in! 🎶" : "Can't make it 💔"
+      form.attending === 'yes' ? 'Yes, attending with joy! 🎶' : 'Regretfully decline 💔'
+
+    const eventsPart =
+      form.attending === 'yes'
+        ? `\n*Events Attending:* ${form.selectedEvents.join(', ')}\n*Guest Count:* ${form.guestCount}\n*Meal Preference:* ${form.mealPreference}`
+        : ''
+
     const messagePart = form.message.trim()
-      ? `\n*Message:* ${form.message.trim()}`
+      ? `\n*Message / Song Request:* ${form.message.trim()}`
       : ''
-    const whatsappMessage = `*New RSVP Received for ${config?.groom || 'Ranveer'} & ${config?.bride || 'Alia'}! 🎉*\n\n*Guest Name:* ${form.name.trim()}\n*Attending:* ${attendanceText}${messagePart}`
+
+    const whatsappMessage = `*Wedding RSVP for ${coupleTitle}! 🎉*\n\n*Guest Name:* ${form.name.trim()}\n*Attending:* ${attendanceText}${eventsPart}${messagePart}`
     const encodedMessage = encodeURIComponent(whatsappMessage)
 
-    // Set phone number (stripping any non-digit characters)
+    // Check if phone number is a valid configured number
     const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '')
-    const whatsappURL = `https://wa.me/${cleanNumber}?text=${encodedMessage}`
+    const isRealNumber = cleanNumber.length >= 10 && !whatsappNumber.includes('[')
 
-    // Open WhatsApp in a new tab
-    window.open(whatsappURL, '_blank')
+    if (isRealNumber) {
+      const whatsappURL = `https://wa.me/${cleanNumber}?text=${encodedMessage}`
+      window.open(whatsappURL, '_blank')
+    } else {
+      setPhoneWarning(whatsappNumber)
+    }
 
     setSubmitted(true)
   }
@@ -204,7 +316,7 @@ export default function RsvpScreen({
         onClick={onBack}
         className="mb-4 flex items-center gap-1.5 py-2 text-sm font-medium text-white/70 hover:text-white transition active:scale-95"
       >
-        <ArrowLeft size={18} /> Back to player
+        <ArrowLeft size={18} /> Back to playlist
       </button>
 
       {/* Header — Liked Songs style */}
@@ -214,14 +326,19 @@ export default function RsvpScreen({
         </div>
         <div>
           <p className="text-[11px] uppercase tracking-[0.25em] text-white/50 font-bold">
-            Playlist complete
+            Playlist Complete
           </p>
           <h1 className="mt-0.5 text-2xl sm:text-[1.7rem] font-black leading-tight">
-            {rsvpConfig.title || "You're a top fan!"}
+            {rsvpConfig.title || "You're on the Guest List!"}
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-white/70">
             {rsvpConfig.subtitle || 'Will you be celebrating live with us?'}
           </p>
+          {rsvpConfig.deadline && (
+            <p className="mt-1 text-[11px] font-semibold text-gold">
+              Please RSVP by {rsvpConfig.deadline}
+            </p>
+          )}
         </div>
       </div>
 
@@ -229,22 +346,43 @@ export default function RsvpScreen({
       <CountdownTimer targetDate={targetIsoDate} displayDate={displayDate} />
 
       {/* Mark Your Calendar (Google Calendar) Button */}
-      <div className="mb-5">
-        <a
-          href={googleCalendarUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-spotify/50 bg-gradient-to-r from-emerald-600/30 via-spotify/20 to-emerald-700/30 py-3 px-4 text-sm font-bold text-white shadow-lg shadow-spotify/15 transition-all duration-300 hover:border-spotify hover:brightness-110 active:scale-[0.98]"
-        >
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-spotify/20 text-spotify group-hover:bg-spotify group-hover:text-black transition-colors">
-            <Calendar size={16} />
-          </div>
-          <span>Mark Your Calendar</span>
-          <span className="rounded-full bg-spotify/20 px-2 py-0.5 text-[10px] font-semibold text-spotify uppercase tracking-wide">
-            Google Cal
-          </span>
-        </a>
-      </div>
+      {googleCalendarUrl ? (
+        <div className="mb-5">
+          <a
+            href={googleCalendarUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-spotify/50 bg-gradient-to-r from-emerald-600/30 via-spotify/20 to-emerald-700/30 py-3 px-4 text-sm font-bold text-white shadow-lg shadow-spotify/15 transition-all duration-300 hover:border-spotify hover:brightness-110 active:scale-[0.98]"
+          >
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-spotify/20 text-spotify group-hover:bg-spotify group-hover:text-black transition-colors">
+              <Calendar size={16} />
+            </div>
+            <span>Mark Your Calendar</span>
+            <span className="rounded-full bg-spotify/20 px-2 py-0.5 text-[10px] font-semibold text-spotify uppercase tracking-wide">
+              Google Cal
+            </span>
+          </a>
+        </div>
+      ) : null}
+
+      {/* Optional Accommodation or Travel information */}
+      {(config?.accommodation && !config.accommodation.includes('[')) ||
+      (config?.travel && !config.travel.includes('[')) ? (
+        <div className="mb-5 rounded-xl border border-white/10 bg-white/[0.05] p-3.5 text-xs text-white/80 space-y-2">
+          {config.accommodation && (
+            <div>
+              <span className="font-bold text-gold">Accommodation: </span>
+              {config.accommodation}
+            </div>
+          )}
+          {config.travel && (
+            <div>
+              <span className="font-bold text-gold">Travel & Transfers: </span>
+              {config.travel}
+            </div>
+          )}
+        </div>
+      ) : null}
 
       {submitted ? (
         <motion.div
@@ -256,33 +394,39 @@ export default function RsvpScreen({
             <Check size={30} />
           </div>
           <h2 className="text-lg font-bold">
-            {rsvpConfig.confirmationTitle || 'Added to the Guest Library 🎉'}
+            {rsvpConfig.confirmationTitle || 'Added to the Celebration Library 🎉'}
           </h2>
-          <p className="mt-1.5 text-sm text-white/75 leading-relaxed">
-            Thanks{form.name ? `, ${form.name}` : ''}! Your RSVP is sent.
+          <p className="mt-1.5 text-sm text-white/80 leading-relaxed">
+            Thank you{form.name ? `, ${form.name}` : ''}! Your RSVP details have been captured.
             {form.attending === 'yes'
               ? ` ${rsvpConfig.confirmationYes || "We can't wait to see you on the dance floor!"}`
               : ` ${rsvpConfig.confirmationNo || "We'll miss you dearly — sending love and warm blessings."}`}
           </p>
+
+          {phoneWarning && (
+            <div className="mt-4 rounded-xl border border-gold/40 bg-gold/10 p-3 text-left text-xs text-gold/90">
+              <span className="font-bold">Notice:</span> The host WhatsApp phone number is configured as <code className="bg-black/40 px-1 py-0.5 rounded text-white">{phoneWarning}</code>. To enable automatic WhatsApp chat forwarding, update <code className="bg-black/40 px-1 py-0.5 rounded text-white">WEDDING_CONFIG.rsvp.whatsappNumber</code> with a valid +91 mobile number.
+            </div>
+          )}
         </motion.div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {/* Guest name — track row style */}
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          {/* Guest name */}
           <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.07] p-3 focus-within:border-spotify/60 focus-within:bg-white/[0.1] transition-all">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white/70">
               <Music2 size={18} />
             </span>
             <span className="flex-1">
               <span className="block text-[10px] font-bold uppercase tracking-wider text-white/50">
-                Guest name
+                Guest Name(s)
               </span>
               <input
                 id="guestName"
                 required
                 value={form.name}
                 onChange={set('name')}
-                placeholder="e.g. Ariana & Dalton"
-                className="w-full bg-transparent text-[15px] font-medium text-white outline-none placeholder:text-white/30"
+                placeholder="e.g. Priya & Rahul Sharma"
+                className="w-full bg-transparent text-[14.5px] font-medium text-white outline-none placeholder:text-white/30"
               />
             </span>
           </label>
@@ -294,8 +438,8 @@ export default function RsvpScreen({
             </span>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { v: 'yes', label: "Yes, I'm in! 🎶" },
-                { v: 'no', label: "Can't make it 💔" },
+                { v: 'yes', label: "Yes, with joy! 🎶" },
+                { v: 'no', label: "Cannot make it 💔" },
               ].map((opt) => (
                 <button
                   key={opt.v}
@@ -313,18 +457,107 @@ export default function RsvpScreen({
             </div>
           </div>
 
+          {/* Event-specific checkboxes (when attending === 'yes') */}
+          {form.attending === 'yes' && (
+            <div className="rounded-xl border border-white/10 bg-white/[0.07] p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">
+                  Select Celebrations
+                </span>
+                <button
+                  type="button"
+                  onClick={toggleAllEvents}
+                  className="text-[11px] font-semibold text-gold hover:underline"
+                >
+                  {form.selectedEvents.length === eventList.length
+                    ? 'Deselect All'
+                    : 'Select All'}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {eventList.map((evtTitle) => {
+                  const isChecked = form.selectedEvents.includes(evtTitle)
+                  return (
+                    <button
+                      key={evtTitle}
+                      type="button"
+                      onClick={() => toggleEvent(evtTitle)}
+                      className={`flex items-center gap-2 rounded-lg p-2.5 text-xs font-semibold text-left transition-all ${
+                        isChecked
+                          ? 'border border-spotify/60 bg-spotify/15 text-white'
+                          : 'border border-white/5 bg-white/5 text-white/50'
+                      }`}
+                    >
+                      <div
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                          isChecked
+                            ? 'border-spotify bg-spotify text-black'
+                            : 'border-white/30'
+                        }`}
+                      >
+                        {isChecked && <Check size={11} strokeWidth={3} />}
+                      </div>
+                      <span className="truncate">{evtTitle}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Guest Count & Meal Preference Row */}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
+                {/* Guest Count */}
+                <label className="block">
+                  <span className="mb-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/50">
+                    <Users size={11} className="text-gold" /> Number of Guests
+                  </span>
+                  <select
+                    value={form.guestCount}
+                    onChange={set('guestCount')}
+                    className="w-full rounded-lg border border-white/10 bg-base py-2 px-2 text-xs font-semibold text-white outline-none focus:border-spotify"
+                  >
+                    <option value="1">1 Guest</option>
+                    <option value="2">2 Guests</option>
+                    <option value="3">3 Guests</option>
+                    <option value="4+">4+ Family</option>
+                  </select>
+                </label>
+
+                {/* Meal Preference */}
+                <label className="block">
+                  <span className="mb-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/50">
+                    <Utensils size={11} className="text-gold" /> Meal Preference
+                  </span>
+                  <select
+                    value={form.mealPreference}
+                    onChange={set('mealPreference')}
+                    className="w-full rounded-lg border border-white/10 bg-base py-2 px-2 text-xs font-semibold text-white outline-none focus:border-spotify"
+                  >
+                    {(rsvpConfig.mealOptions || ['Vegetarian', 'Jain', 'Non-Vegetarian']).map(
+                      (opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </label>
+              </div>
+            </div>
+          )}
+
           {/* Message */}
           <label className="block rounded-xl border border-white/10 bg-white/[0.07] p-3 focus-within:border-spotify/60 focus-within:bg-white/[0.1] transition-all">
             <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-white/50">
-              Message / Song Request for the couple
+              Message / Song Request for the Couple
             </span>
             <textarea
               id="message"
               rows={3}
               value={form.message}
               onChange={set('message')}
-              placeholder="Leave a heartfelt note, song request, or cheer…"
-              className="w-full resize-none bg-transparent text-[14.5px] text-white outline-none placeholder:text-white/30 leading-relaxed"
+              placeholder="Leave a blessing, song request for the dance floor, or heartfelt note…"
+              className="w-full resize-none bg-transparent text-[14px] text-white outline-none placeholder:text-white/30 leading-relaxed"
             />
           </label>
 
@@ -335,19 +568,31 @@ export default function RsvpScreen({
           >
             <Send size={18} /> Send RSVP via WhatsApp
           </button>
+
+          {/* RSVP Contact Info */}
+          {(rsvpConfig.contactName && !rsvpConfig.contactName.includes('[')) ||
+          (rsvpConfig.contactPhone && !rsvpConfig.contactPhone.includes('[')) ? (
+            <div className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-white/60">
+              <Phone size={12} className="text-gold shrink-0" />
+              <span>
+                Need help? Contact {rsvpConfig.contactName} at {rsvpConfig.contactPhone}
+              </span>
+            </div>
+          ) : null}
         </form>
       )}
 
-      {/* Floating Get Directions button */}
-      <a
-        href={mapsUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-5 z-20 flex items-center gap-2 rounded-full bg-gold px-5 py-3 text-xs sm:text-sm font-extrabold text-black shadow-2xl shadow-black/80 ring-1 ring-white/20 transition active:scale-95 hover:brightness-105"
-      >
-        <MapPin size={17} /> GET DIRECTIONS
-      </a>
+      {/* Floating Get Directions button (only rendered if valid map url exists) */}
+      {hasValidMapUrl && (
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-5 z-20 flex items-center gap-2 rounded-full bg-gold px-5 py-3 text-xs sm:text-sm font-extrabold text-black shadow-2xl shadow-black/80 ring-1 ring-white/20 transition active:scale-95 hover:brightness-105"
+        >
+          <MapPin size={17} /> GET DIRECTIONS
+        </a>
+      )}
     </motion.div>
   )
 }
-

@@ -1,70 +1,71 @@
-# Wedding Wrapped 💍🎧
+# The Wedding Playlist 💍🎧 (Indian Wedding Edition)
 
-A wedding invitation styled like **Spotify Wrapped**. Every event is a "song" in a
-playlist — as you skip between tracks the album art slides, the background morphs to
-match the event, and the music cross-fades.
+A contemporary Indian wedding invitation styled like **Spotify Wrapped / Playlist**. Every wedding ceremony is an interactive "track" in the lineup — as guests swipe or advance through events, the album art slides, the background morphs dynamically to the ceremony's color palette, and authentic wedding music plays.
 
-## Run it
+---
+
+## Quick Start
 
 ```bash
+# 1. Install dependencies
 npm install
+
+# 2. Run local development server
 npm run dev
-```
 
-Then open the printed URL (default http://localhost:5173). The terminal also prints a
-**Network** URL (e.g. `http://192.168.x.x:5173`) — open that on your phone (same Wi‑Fi)
-to test on a real device.
-
-Build for production:
-
-```bash
+# 3. Build for production
 npm run build && npm run preview
 ```
 
-## Edit the content
+---
 
-Everything lives in one file: [`src/data/playlist.js`](src/data/playlist.js).
-Each track is one event:
+## Customizing Couple & Event Information
 
-| field      | meaning                                   |
-| ---------- | ----------------------------------------- |
-| `title`    | Event name (shown as the song title)      |
-| `artist`   | Venue name                                |
-| `coverUrl` | Event photo (album art + blurred backdrop)|
-| `audioUrl` | MP3 that plays for this event             |
-| `lyrics`   | Description / vibe text                    |
-| `date`     | Date & time string                        |
-| `accent`   | `'#1DB954'` (green) or `'#D4AF37'` (gold)  |
-| `mapsUrl`  | Google Maps link for "Get Directions"     |
+All wedding information is centralized in [`src/data/playlist.js`](src/data/playlist.js).
 
-> The sample images (Unsplash) and audio (SoundHelix) are royalty‑free placeholders —
-> swap `coverUrl` / `audioUrl` for your own. Put local files in `/public` and reference
-> them as `/my-song.mp3`.
+### 1. Couple Details (`WEDDING_CONFIG`)
 
-## Tech
+| Field | Description | Example |
+| :--- | :--- | :--- |
+| `bride` | Bride's name | `Alia` |
+| `groom` | Groom's name | `Ranveer` |
+| `displayOrder` | Order of couple names (`'bride-groom'` or `'groom-bride'`) | `'bride-groom'` |
+| `weddingCityState` | Wedding destination | `Udaipur, Rajasthan, India` |
+| `hashtag` | Social media hashtag | `#RanAliaForever` |
+| `invitationHosts` | Host line | `Together with our families` |
+| `story` | Welcome blessing / quote on the landing screen | `"Two hearts. One playlist. A lifetime on repeat. 🤍"` |
+| `mainWeddingDate` | Display date string | `14 February 2027 · 6:00 PM IST` |
+| `isoWeddingDate` | ISO 8601 date in Asia/Kolkata for countdown & Google Cal | `2027-02-14T18:00:00+05:30` |
 
-React + Vite · Tailwind CSS · Framer Motion · lucide-react. Pinned to Vite 4 /
-Framer Motion 10 for Node 16 compatibility.
+### 2. Events Lineup (`WEDDING_PLAYLIST`)
 
-## Structure
+The events appear in chronological order:
 
-```
-src/
-  App.jsx                 screen router + audio engine + slide direction
-  data/playlist.js        WEDDING_PLAYLIST  ← edit here
-  hooks/useAudioEngine.js dual-<audio> cross-fade engine
-  components/
-    LandingOverlay.jsx    intro / PLAY button
-    MusicPlayer.jsx       main player layout
-    AlbumArt.jsx          sliding, scaling event photo
-    SongInfo.jsx          title (marquee) + date + like
-    Controls.jsx          seek bar + prev/play/next
-    LyricsBox.jsx         event description card
-    RsvpScreen.jsx        outro RSVP form + directions
-    BackgroundGradient.jsx blurred dynamic backdrop
-```
+1. **Mehendi**: Henna afternoon with vibrant ethnic wear
+2. **Haldi**: Auspicious turmeric ceremony with shades of yellow
+3. **Sangeet**: High-energy musical celebration with festive Indo-Western wear
+4. **Wedding Ceremony**: Sacred vows and rituals in traditional Indian attire
 
-## Wiring up the RSVP
+Each event contains:
+- `title`: Actual event name (`Mehendi`, `Haldi`, `Sangeet`, `Wedding Ceremony`)
+- `artist`: Couple's name
+- `venue`: Name of the venue
+- `address`: Full venue address
+- `mapsUrl`: Google Maps link for directions
+- `date` / `time`: Unambiguous event schedule in IST
+- `dressCode`: Dress code recommendation
+- `lyrics`: Description / vibe text
+- `coverUrl`: Event photo
+- `audioUrl`: Background audio track
 
-`RsvpScreen.jsx`'s `handleSubmit` currently just `console.log`s. Point it at a Google
-Form, Formspree, or your own endpoint to actually collect responses.
+---
+
+## RSVP via WhatsApp
+
+The RSVP screen allows guests to:
+- See the countdown to the wedding ceremony (Asia/Kolkata timezone)
+- Add the event directly to Google Calendar
+- Confirm attendance (`Yes, with joy!` or `Cannot make it`)
+- Choose which individual celebrations they will attend (Mehendi, Haldi, Sangeet, Wedding)
+- Select number of guests and meal preference (`Vegetarian`, `Jain`, `Non-Vegetarian`)
+- Submit their RSVP message directly to the host's WhatsApp number (+91 format).

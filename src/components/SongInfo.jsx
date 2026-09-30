@@ -3,11 +3,13 @@ import { Calendar, Heart } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 /**
- * SongInfo — event name (title) + date/time (subtitle) with Spotify equalizer & like button.
+ * SongInfo — event name (title), couple (artist) + date/time (subtitle)
+ * with Spotify equalizer & like button.
  * Uses a marquee when title overflows the container.
  */
 export default function SongInfo({
   title,
+  artist,
   subtitle,
   isPlaying = false,
   trackNumber = 1,
@@ -36,12 +38,12 @@ export default function SongInfo({
   }
 
   return (
-    <div className="mt-5 flex w-full flex-col">
+    <div className="mt-4 flex w-full flex-col">
       {/* Top track pill + live audio equalizer */}
       <div className="flex items-center justify-between text-xs text-white/50">
         <div className="flex items-center gap-2">
           <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-bold tracking-widest text-spotify uppercase">
-            Ceremony {trackNumber.toString().padStart(2, '0')}
+            Event {trackNumber.toString().padStart(2, '0')}
           </span>
           {isPlaying && (
             <div className="flex items-end gap-0.5 h-3">
@@ -84,10 +86,17 @@ export default function SongInfo({
             )}
           </div>
 
-          <p className="mt-1 flex items-center gap-1.5 truncate text-xs sm:text-sm font-medium text-white/70">
-            <Calendar size={13} className="shrink-0 text-gold" />
-            <span>{subtitle}</span>
-          </p>
+          <div className="mt-0.5 flex flex-col gap-0.5">
+            {artist && (
+              <p className="truncate text-xs font-semibold text-white/80">
+                {artist}
+              </p>
+            )}
+            <p className="flex items-center gap-1.5 truncate text-[11px] sm:text-xs font-medium text-white/60">
+              <Calendar size={12} className="shrink-0 text-gold" />
+              <span>{subtitle}</span>
+            </p>
+          </div>
         </div>
 
         <motion.button
@@ -111,4 +120,3 @@ export default function SongInfo({
     </div>
   )
 }
-
